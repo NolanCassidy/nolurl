@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}nalon.me{% endblock %}
+
+{% block head %}
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-6">
+            <h1> nalon.me <small>make a URL</small></h1>
+        </div>
+        <div class="col-md-6">
+            <div class="pull-right">
+                {% if request.user.is_authenticated %}
+                    {% include "includes/bookmark_modal.html" %}
+                {% else %}
+                    <a href="{% url 'login_view' %}">Log in to shorten a link</a>
+                {% endif %}
+                <br>
+                <a href="{% url 'user_view' %}">All User Links</a>
+            </div>
+        </div>
+    </div>
+
+    <h2>All Shortened Links</h2>
+    {% with object_list as bookmark %}
+        {% include "includes/bookmark_table.html" %}
+    {% endwith %}
+
+{#    https://docs.djangoproject.com/en/1.9/topics/class-based-views/mixins/#using-singleobjectmixin-with-listview #}
+    {% if is_paginated %}
+    <nav>
+        <ul class="pager">
+            {% if page_obj.has_previous %}
+                <li><a href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+            {% endif %}
+            <li>Page {{ page_obj.number }} of {{ paginator.num_pages }}</li>
+            {% if page_obj.has_next %}
+                <li><a href="?page={{ page_obj.next_page_number }}">Next</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+   {% endif %}
+    {% endblock %}
+
+    {% block javascript %}
+        <script type="text/javascript">
+        // http://stackoverflow.com/a/14613849/5119789
+        var page = $(location).attr('search');
+        $.getJSON('/api/short_links/' + page, function(results) {
+            results['results'].forEach(function(link) {
+                var yMax = Math.max.apply(Math, link['month_stats'][1]) + 1;
+                var data = [
+                    {
+                        // dates
+                        x: link['month_stats'][0],
+                        // number of clicks
+                        y: link['month_stats'][1],
+                        type: 'bar'
+                    }
+                ];
+                var layout = {
+                    title: 'Clicks for the past 30 days',
+                    yaxis: {range: [0, yMax]},
+                };
+                var myDiv = 'myDiv' + link['id'];
+                Plotly.newPlot(myDiv, data, layout, {staticPlot: true});
+            });
+        });
+        </script>
+    {% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}nalon.me{% endblock %}
+
+{# {% block head %}#}
+{# {% endblock %}#}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-6">
+            <h1>Links:</h1>
+        </div>
+        <div class="col-md-6">
+            <div class="pull-right">
+                {% if request.user.is_authenticated %}
+                    {% include "includes/bookmark_modal.html" %}
+                {% else %}
+                    <a href="{% url 'login_view' %}">Log in to shorten a link</a>
+                {% endif %}
+                <br>
+                <a href="{% url 'user_view' %}">All User Links</a>
+            </div>
+    </div>
+
+    {% include "includes/bookmark_table.html" %}
+
+
+
+
+{% endblock %}
